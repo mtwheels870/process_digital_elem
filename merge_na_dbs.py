@@ -4,14 +4,11 @@ import pandas as pd
 NA_15_FILE="na_15_small.csv"
 NA_18_FILE="na_18.csv"
 NA_25_FILE="na_25.csv"
-NA_30_FILE="na_30_NY_short.csv"
+NA_30_FILE="na_30_NY.csv"
 
 OUTPUT_FILE="na_30_ny_merged.csv"
 
 FIELD_IP_START = "ip_start"
-FIELD_IP_START2 = "ip_start2"
-FIELD_IP_START3 = "ip_start3"
-FIELD_IP_START4 = "ip_start4"
 
 class MergeHandler():
     def __init__(self):
@@ -41,6 +38,23 @@ class MergeHandler():
         self.df_org = pd.read_csv(NA_25_FILE, sep=',', dtype='str', na_values="None")
         self.df_org.set_index(FIELD_IP_START, inplace=True)
 
+    def keep_companies_only(self):
+        deleteIndices = []
+        index_copied = 0
+        for index, row in self.df_temp3.iterrows():
+            #print(f"checking row {row}")
+            #print(f"types: {type(row.company_name)}")
+            if pd.isna(row.company_name) and pd.isna(row.naics_code) and pd.isna(row.organization_name):
+                deleteIndices.append(index)
+                continue
+            print(f"Copying row, company {row.company_name}, naics code: {row.naics_code}, org: {row.organization_name}")
+            #new_row = pd.DataFrame([row])
+            #df_temp4 = pd.concat([df_temp4, new_row], ignore_index=True)
+            index_copied = index_copied + 1
+        self.df_temp3.drop(deleteIndices, axis=0, inplace=True)
+        self.df_temp3.to_csv(OUTPUT_FILE)
+        print(f"Wrote file: {OUTPUT_FILE}, {index_copied} rows copied")
+
     def merge_all(self):
         print(f"merge_all, merging {NA_30_FILE} and: {NA_15_FILE}")
         # df_temp1 = self.df_ip_ranges.copy()
@@ -61,20 +75,11 @@ class MergeHandler():
         df_temp2.drop(["ip_end", "Unused-3"], axis=1, inplace=True)
 
         print(f"merge_all, merging {NA_30_FILE}/{NA_15_FILE}/{NA_18_FILE}: with {NA_25_FILE}")
-        df_temp3 = pd.merge(df_temp2, self.df_org, on=FIELD_IP_START, how="left")
-        df_temp3.drop(["ip_end", "Unused-4"], axis=1, inplace=True)
-        df_temp4 = df_temp3.copy(deep=False)
-        index_copied = 0
-        for row in df_temp3.itertuples():
-            print(f"checking row {row}")
-            print(f"types: {type(row.company_name)}")
-            if row.company_name.isempty() and row.naics_code.isempty() and row.organization_name.isempty():
-                continue
-            print(f"Copying row, company {row.company_name}, naics code: {row.naics_code}, org: {row.organization_name}")
-            df_temp4.concat(df_temp4, row)
-            index_copied = index_copied + 1
-        df_temp4.to_csv(OUTPUT_FILE)
-        print(f"Wrote file: {OUTPUT_FILE}, {index_copied} rows copied")
+        self.df_temp3 = pd.merge(df_temp2, self.df_org, on=FIELD_IP_START, how="left")
+        self.df_temp3.drop(["ip_end", "Unused-4"], axis=1, inplace=True)
+        # self.df_temp4 = self.df_temp3.copy(deep=False)
+
+        self.keep_companies_only()
 
 def main():
     parser = argparse.ArgumentParser(description="calculate X to the power of Y")
