@@ -22,7 +22,7 @@ class DigitalElementLoader():
 
     def load_merged(self):
         full_path = os.path.join(DATA_DIR, MERGED_FILE)
-        self.df_merged = pd.read_csv(full_path, sep=',', dtype='str', na_values="None")
+        self.df_merged = pd.read_csv(full_path, sep=',', na_values="None", dtype={"latitude": float, "longitude": float})
         shape = self.df_merged.shape
         print(f"load_merged(), file: {MERGED_FILE}, shape = {shape}")
 
@@ -41,11 +41,30 @@ class DigitalElementLoader():
         self.df_merged[SRS_ISSUER_ID] = null_list
         self.df_merged[SRS_LATITUDE] = null_list
         self.df_merged[SRS_LONGITUDE] = null_list
+        print(f"resolve_companies(), columns:")
+        print(self.df_merged.columns)
 
         companies_found = 0
         # for row in self.df_srs.itertuples():
         for index, row in self.df_srs.iterrows():
-            print(f"resolve_companies(), row[{index}] = {row}")
+            str_latitude = row.latitude
+            float_latitude = round(float(row.latitude), 2)
+            str_longitude = row.longitude
+            float_longitude = round(float(row.longitude), 2)
+            str2_lat = str(float_latitude)  
+            str2_long = str(float_longitude)  
+            filtered_df1 = self.df_merged[self.df_merged["pp_latitude"] == str2_lat]
+            if filtered_df1.shape[0] > 0:
+                print(f"resolve_companies(), FOUND LAT, row[{index}] = (lat, long) {str2_lat}, {str2_long}")
+                print(f"resolve_companies(), filtered.shape: {filtered_df1.shape}")
+            # filtered_df2 = filtered_df2["pp_longitude" == str2_long]
+#            index_result = 0
+#            for row in filtered_df1.itertuples:
+#                company_name = filtered_df1["company_name"]
+#                naics_code = filtered_df1["naics_code"]
+#                organization_name = filtered_df1["organization_name"]
+#                print(f"resolve_companies(), [{index_result}]: {company_name}, {naics_code}, {organization_name}")
+#                index_result = index_result + 1
             self.df_merged.at[index, SRS_COMPANY_NAME] = row.IssuerName
             self.df_merged.at[index, SRS_ISSUER_ID] = row.IssuerID
             self.df_merged.at[index, SRS_LATITUDE] = row.latitude
