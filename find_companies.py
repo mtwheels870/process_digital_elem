@@ -1,50 +1,46 @@
-import os
 import argparse
 import pandas as pd
 
-DATA_DIR = "./Data"
 NA_15_FILE="na_15_all.csv"
 NA_18_FILE="na_18.csv"
 NA_25_FILE="na_25.csv"
 NA_30_FILE="na_30_NY.csv"
 
-OUTPUT_FILE="na_30_ny_merged.csv"
+MERGED_FILE="na_30_ny_merged.csv"
 
 FIELD_IP_START = "ip_start"
 
-class MergeHandler():
+class DigitalElementLoader():
     def __init__(self):
         self.stuff = None
 
     def parse_na_30_ip_ranges(self):
-        full_path = os.path.join(DATA_DIR, NA_30_FILE)
-        print(f"parse_na_30_ip_ranges, file: {full_path}")
+        print(f"parse_na_30_ip_ranges, file: {NA_30_FILE}")
 # ip_start,ip_end,pp_country,pp_region,pp_city,pp_conn_speed,pp_conn_type,pp_metro_code,pp_latitude,pp_longitude,pp_postal_code,pp_postal_ext,pp_country_code,pp_region_code,pp_city_code,pp_continent_code,pp_two_letter_country,pp_internal_code,pp_area_codes,pp_country_conf,pp_region_conf,pp_city_conf,pp_postal_conf,pp_gmt_offset,pp_in_dst,pp_timezone_name,Unused-1
-        self.df_ip_ranges = pd.read_csv(full_path, sep=',', dtype='str', na_values="None")
+        self.df_ip_ranges = pd.read_csv(NA_30_FILE, sep=',', dtype='str', na_values="None")
         self.df_ip_ranges.set_index(FIELD_IP_START, inplace=True)
 
     def parse_na_15_companies(self):
-        full_path = os.path.join(DATA_DIR, NA_15_FILE)
-        print(f"parse_na_15_companies, file: {full_path}")
+        print(f"parse_na_15_companies, file: {NA_15_FILE}")
 # ip_start2;ip_end;company_name;Unused-2
-        self.df_company = pd.read_csv(full_path, sep=';', dtype='str', na_values="None")
+        self.df_company = pd.read_csv(NA_15_FILE, sep=';', dtype='str', na_values="None")
         self.df_company.set_index(FIELD_IP_START, inplace=True)
 
     def parse_na_18_naics(self):
-        full_path = os.path.join(DATA_DIR, NA_18_FILE)
-        print(f"parse_na_18_naics, file: {full_path}")
+        print(f"parse_na_18_naics, file: {NA_18_FILE}")
 # ip_start3,ip_end,naics_code,Unused-3
-        self.df_naics = pd.read_csv(full_path, sep=',', dtype='str', na_values="None")
+        self.df_naics = pd.read_csv(NA_18_FILE, sep=',', dtype='str', na_values="None")
         self.df_naics.set_index(FIELD_IP_START, inplace=True)
 
     def parse_na_25_orgs(self):
-        full_path = os.path.join(DATA_DIR, NA_25_FILE)
-        print(f"parse_na_25_orgs, file: {full_path}")
+        print(f"parse_na_25_orgs, file: {NA_25_FILE}")
 # ip_start4,ip_end,organization_name,Unused-4
-        self.df_org = pd.read_csv(full_path, sep=',', dtype='str', na_values="None")
+        self.df_org = pd.read_csv(NA_25_FILE, sep=',', dtype='str', na_values="None")
         self.df_org.set_index(FIELD_IP_START, inplace=True)
 
-    def keep_companies_only(self):
+    def load_merged(self):
+        self.df_merged = self.df_org = pd.read_csv(MERGED_FILE, sep=',', dtype='str', na_values="None")
+        mh.()
         deleteIndices = []
         index_copied = 0
         for index, row in self.df_temp3.iterrows():
@@ -58,9 +54,8 @@ class MergeHandler():
             #df_temp4 = pd.concat([df_temp4, new_row], ignore_index=True)
             index_copied = index_copied + 1
         self.df_temp3.drop(deleteIndices, axis=0, inplace=True)
-        full_path = os.path.join(DATA_DIR, OUTPUT_FILE)
-        self.df_temp3.to_csv(full_path)
-        print(f"Wrote file: {full_path}, {index_copied} rows copied")
+        self.df_temp3.to_csv(OUTPUT_FILE)
+        print(f"Wrote file: {OUTPUT_FILE}, {index_copied} rows copied")
 
     def merge_all(self):
         print(f"merge_all, merging {NA_30_FILE} and: {NA_15_FILE}")
@@ -105,12 +100,8 @@ def main():
 #    else:
 #        print(f"{args.x}^{args.y} == {answer}")
     try:
-        mh = MergeHandler()
-        mh.parse_na_30_ip_ranges()
-        mh.parse_na_15_companies()
-        mh.parse_na_18_naics()
-        mh.parse_na_25_orgs()
-        mh.merge_all()
+        mh = DigitalElementLoader()
+        mh.load_merged()
     except Exception as Argument:
         print(f"Exception: {Argument} occurred")
 
