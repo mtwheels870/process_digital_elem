@@ -59,16 +59,17 @@ class DigitalElementLoader():
         found = False
         issuer_name = srs_row.IssuerName.lower()
         # asset_name = srs_row.AssetName.lower()
-        # print(f"resolve_company(), SRS name: ({{rounded_longitude}, {rounded_latitude}): {issuer_name}, {asset_name}")
+        print(f"resolve_company(), SRS name: {issuer_name}")
         subset_df = self.df_merged.iloc[indices_this_company]
         if subset_df.shape[0] == 1:
-            # print(f"m_l().1, srs_row = {issuer_name }")
+            print(f"m_l().1, only row")
             # Only matching row, call it a match
             self.process_found(MatchStrength.LOCATION, indices_this_company[0], srs_row)
             found = True
         else:
             issuer_first_word = issuer_name.lower().split()[0]
-            for index, merged_row in self.df_merged.iterrows():
+            for index, merged_row in subset_df.iterrows():
+                print(f"resolve_company(), checking[{index}]: {merged_row.company_name},{merged_row.organization_name}")
                 if self.match_name(issuer_first_word, merged_row.company_name):
                     print(f"m_l().2, srs_row = {issuer_name}, company_name = {merged_row.company_name}")
                     process_found(MatchStrength.COMPANY_NAME, index, srs_row)
@@ -111,7 +112,7 @@ class DigitalElementLoader():
                     #indices_companies_found.append(index2)
                     indices_this_company.append(index2)
             if len(indices_this_company) > 0:
-                print(f"calling r_c_n(), indices = {indices_this_company}")
+                print(f"calling r_c(), long/lat/name = ({rounded_longitude},{rounded_latitude},{srs_row.IssuerName}), indices = {indices_this_company}")
                 if self.matching_location(srs_row, rounded_latitude, rounded_longitude, indices_this_company):
                     companies_found = companies_found + 1
         full_path = os.path.join(DATA_DIR, PLUS_SRS_FILE)
